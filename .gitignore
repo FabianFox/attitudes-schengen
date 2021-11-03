@@ -1,5 +1,5 @@
 # dta-files in data
-./data/*.dta
+data/*.dta
 
 # History files
 .Rhistory
