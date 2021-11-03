@@ -1,3 +1,6 @@
+# dta-files in data
+./data/*.dta
+
 # History files
 .Rhistory
 .Rapp.history
