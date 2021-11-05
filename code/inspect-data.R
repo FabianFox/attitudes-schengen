@@ -1,6 +1,6 @@
 # Load/install packages 
 if (!require("xfun")) install.packages("xfun")
-pkg_attach2("tidyverse", "rio", "countrycode", "skimr")
+pkg_attach2("tidyverse", "rio", "countrycode", "skimr", "wbstats")
 
 # Load data: Eurobarometer 89.3 (2018)
 # from: https://search.gesis.org/research_data/ZA7483
@@ -73,4 +73,13 @@ kof.df <- import("https://ethz.ch/content/dam/ethz/special-interest/dual/kof-dam
 kof.df <- kof.df %>%
   filter(year == 2018,
          code %in% eb.df$iso3cntry)
-  
+
+# World Bank Indicators
+wb.info <- wb_data(country = unique(eb.df$iso3cntry),
+                   indicator = c("NY.GDP.PCAP.CD", "SP.POP.TOTL", "SI.POV.GINI"), 
+                   start_date = 2018, end_date = 2018, return_wide = TRUE)
+
+# Join to eb.df
+eb.df <- eb.df %>%
+  left_join(y = kof.df, by = c("iso3cntry" = "code")) %>%
+  left_join(y = wb.info, by = c("iso3cntry" = "iso3c"))
