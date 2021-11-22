@@ -1,6 +1,6 @@
 # Load/install packages 
 if (!require("xfun")) install.packages("xfun")
-pkg_attach2("tidyverse", "rio", "countrycode", "skimr", "wbstats")
+pkg_attach2("tidyverse", "rio", "countrycode", "skimr", "wbstats", "eurostat")
 
 # Load data: Eurobarometer 89.3 (2018)
 # from: https://search.gesis.org/research_data/ZA7483
@@ -15,6 +15,11 @@ eb.df <- source.df %>%
          iso3cntry = countrycode(isocntry, "iso2c", "iso3c", 
                                  custom_match = c("DE-E" = "East Germany",
                                                   "DE-W" = "DEU"))) # West Germany
+
+# Composite measure of attitudes toward Schengen
+eb.df <- eb.df %>%
+  rowwise() %>%
+  mutate(schengen_att = mean(c_across(contains("qa12_"))))
 
 # Look at attitudes
 eb.df %>%
@@ -34,11 +39,6 @@ eb.df %>%
   na.omit() %>%
   GGally::ggcorr(label = TRUE)
 
-# Composite measure of attitudes toward Schengen
-eb.df <- eb.df %>%
-  rowwise() %>%
-  mutate(schengen_att = mean(c_across(contains("qa12_"))))
-
 # Socio-economic background: 
 # - occupation (d15a)
 # - education (d8)
@@ -49,6 +49,11 @@ eb.df <- eb.df %>%
 # - household composition (d40a)
 # - left-right placement (d1)
 # - gender (d10)
+
+# Macrolevel:
+# - KOF globalization index
+# - Gini coefficient
+
 
 # Correlation between schengen_att and age
 eb.df %>%
@@ -78,6 +83,17 @@ kof.df <- kof.df %>%
 wb.info <- wb_data(country = unique(eb.df$iso3cntry),
                    indicator = c("NY.GDP.PCAP.CD", "SP.POP.TOTL", "SI.POV.GINI"), 
                    start_date = 2018, end_date = 2018, return_wide = TRUE)
+
+# Eurostat
+# Eurostat country codes
+eu_code <- countrycode(unique(eb.df$iso3cntry), origin = "iso3c", "eurostat")
+
+# Variables: tessi190: Gini coefficient, demo_urespop: Population size,
+#            tec00114: GDP pc, in PPS
+vars <- c("tessi190", "demo_urespop", "tec00114")
+
+eurostat.df <- vars %>%
+  map(., ~get_eurostat(.x,  filters = list(geo = eu_code, time = 2018), time_format = "num"))
 
 # Join to eb.df
 eb.df <- eb.df %>%
