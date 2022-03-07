@@ -49,12 +49,28 @@ eb.df <- eb.df %>%
 eb.df <- eb.df %>%
   select(!matches("^q(b|c)")) %>%
   mutate(across(c(contains("qa12_"), qa20, qa21), ~ifelse(.x == 5, 
-                                                          NA_integer_, 
+                                                          NA_real_, 
                                                           .x)),
          iso3cntry = countrycode(nation, "iso2c", "iso3c"))
 
 # Composite measure of attitudes toward Schengen
 ### ------------------------------------------------------------------------ ###
+# Potential variables are:
+tibble(
+  variable = 
+    source.df %>%
+    select(c(contains("qa12_"), qa20, qa21)) %>%
+    colnames(),
+  question = source.df %>%
+    select(c(contains("qa12_"), qa20, qa21)) %>%
+    map_chr(., ~sjlabelled::get_label(.x)) %>%
+    str_to_sentence(),
+  values = source.df %>%
+    select(c(contains("qa12_"), qa20, qa21)) %>%
+    map(., ~sjlabelled::get_labels(.x, values = "p"))) %>%
+  gt::gt()
+  
+# Create composite measure
 eb.df <- eb.df %>%
   rowwise() %>%
   mutate(schengen_att = mean(c_across(contains("qa12_"))))
