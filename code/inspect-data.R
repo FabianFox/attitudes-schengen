@@ -46,6 +46,7 @@ eb.df <- eb.df %>%
   separate(cntr_de, into = c("nation", "nation_name"), sep = "-") %>%
   mutate(across(c("nation", "nation_name"), ~str_trim(.x)))
 
+# Deal with NA
 eb.df <- eb.df %>%
   select(!matches("^q(b|c)")) %>%
   mutate(across(c(contains("qa12_"), qa20, qa21), ~ifelse(.x == 5, 
@@ -96,13 +97,15 @@ eb.df %>%
 # Socio-economic background: 
 # - occupation (d15a)
 # - education (d8)
+# - economic issues (d60)
 
 # Controls:
 # - age (d11)
 # - marital status (d7)
-# - household composition (d40a)
+# - household composition (d40a-c)
 # - left-right placement (d1)
 # - gender (d10)
+# - rural/urban (d25)
 
 # Macrolevel:
 # - KOF globalization index
